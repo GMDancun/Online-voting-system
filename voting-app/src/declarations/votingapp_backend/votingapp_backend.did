@@ -1,0 +1,33 @@
+type CreateVoteErr = variant { VoterDoesNotExist : principal };
+type CreateVoteResult = variant { Ok : Votes; Err : CreateVoteErr };
+type DeleteVoteError = variant {
+  VoteDoesNotExist : principal;
+  VoterDoesNotExist : principal;
+};
+type DeleteVoteResult = variant { Ok : Votes; Err : DeleteVoteError };
+type DeleteVoterError = variant { VoterDoesNotExist : principal };
+type DeleteVoterResult = variant { Ok : Voter; Err : DeleteVoterError };
+type Voter = record {
+  firstname : text;
+  username : text;
+  vote_ids : vec principal;
+  hasvoted : bool;
+  created_at : nat64;
+  voterid : principal;
+};
+type Votes = record {
+  votername : text;
+  voter_id : principal;
+  voteid : principal;
+  created_at : nat64;
+};
+service : () -> {
+  create_voter : (text, text) -> (Voter);
+  delete_vote : (principal) -> (DeleteVoterResult);
+  delete_voter : (principal) -> (DeleteVoteResult);
+  read_vote_by_id : (principal) -> (opt Votes) query;
+  read_voter_by_id : (principal) -> (opt Voter) query;
+  read_voters : () -> (vec Voter) query;
+  read_votes : () -> (vec Votes) query;
+  vote_now : (text, principal) -> (CreateVoteResult);
+}

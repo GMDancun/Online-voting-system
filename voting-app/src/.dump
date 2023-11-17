@@ -1,0 +1,313 @@
+from kybra import Alias, nat8, nat64, Opt, query, StableBTreeMap, Tuple, update, Vec
+
+Key = Alias[nat8]
+Value = Alias[str]
+
+# Initialize the BTreeMap for storing candidates and their votes
+candidates_map = StableBTreeMap[Key, Tuple[Value, nat64]](memory_id=3, max_key_size=100, max_value_size=1_000)
+
+class Voter:
+    def __init__(self, voter_id, name):
+        self.voter_id = voter_id
+        self.name = name
+        self.voted = False
+
+class Candidate:
+    def __init__(self, candidate_id, name, party):
+        self.candidate_id = candidate_id
+        self.name = name
+        self.party = party
+
+class Election:
+    def __init__(self, candidates_map):
+        self.candidates_map = candidates_map
+        self.voters = {}
+
+    def add_voter(self, voter_id, name):
+        self.voters[voter_id] = Voter(voter_id, name)
+
+    def conduct_election(self):
+        for voter in self.voters.values():
+            if not voter.voted:
+                print(f"{voter.name}, please vote:")
+                for candidate_id, (candidate_name, _) in self.candidates_map.items():
+                    print(f"{candidate_id}. {candidate_name}")
+
+                vote = int(input("Enter the number of your chosen candidate: "))
+                if vote in self.candidates_map:
+                    candidate_name, votes = self.candidates_map[vote]
+                    print(f"Thank you, {voter.name}, for voting for {candidate_name}!")
+                    self.voters[voter.voter_id].voted = True
+                    self.candidates_map[vote] = (candidate_name, votes + 1)
+                else:
+                    print("Invalid choice. Please try again.")
+
+    def announce_results(self):
+        print("Election Results:")
+        for candidate_id, (candidate_name, votes) in self.candidates_map.items():
+            print(f"{candidate_name} received {votes} votes.")
+
+# Example Usage:
+
+# Initialize candidates
+candidates_map = StableBTreeMap[Key, Tuple[Value, nat64]](memory_id=3, max_key_size=100, max_value_size=1_000)
+candidates_map.insert(1, ("Candidate A", 0))
+candidates_map.insert(2, ("Candidate B", 0))
+
+# Create an Election instance
+election = Election(candidates_map)
+
+# Add voters
+election.add_voter(101, "John Doe")
+election.add_voter(102, "Jane Smith")
+
+# Conduct the election
+election.conduct_election()
+
+# Announce results
+election.announce_results()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// async function createVoter(username, firstname) {
+//   const response = await fetch(`${votingapp_backend}/create_voter`, {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/json',
+//     },
+//     body: JSON.stringify({ username, firstname }),
+//   });
+//
+//   const result = await response.json();
+//   console.log(result);
+//
+//   // Display the result or perform additional actions as needed
+// }
+//
+// document.querySelector("form").addEventListener("submit", async function(event) {
+//   event.preventDefault();
+//
+//   const inputUsername = document.getElementById("username").value;
+//   const inputFirstname = document.getElementById("firstname").value;
+//
+//   await createVoter(inputUsername, inputFirstname);
+// });
+
+
+// document.querySelector("form").addEventListener("submit", async function(event){
+//   event.preventDefault()
+//   // console.log("Submitted")
+//
+//   const inputUsername = document.getElementById("username").value;
+//   const inputFirstname = document.getElementById("firstname").value;
+//
+//   await `${votingapp_backend}/create_voter`(inputUsername, inputFirstname);
+//
+// })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{{}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+import secrets
+
+from kybra import (
+    ic, Opt,
+    query, update, Vec
+)
+
+from db import *
+from errors import *
+
+
+@update
+def create_voter(username: str, f_name: str, l_name: str) -> Voter:
+    voter_id = generate_id()
+    voter: Voter = {
+        "voter_id": voter_id,
+        "f_name": f_name,
+        "l_name": l_name,
+        "username": username,
+        "created_at": ic.time(),
+        "vote_ids": [],
+
+    }
+
+    # insert voter id in our (voters db)
+    voters.insert(voter["voter_id"], voter)
+
+    return voter
+
+
+@query
+def read_users() -> Vec[Voter]:
+    return voters.values()
+
+
+@query
+def read_user_by_id(voter_id: Principal) -> Opt[Voter]:
+    return voters.get(voter_id)
+
+
+@update
+def delete_user(voter_id: Principal) -> DeleteVoterResult:
+    voter = voters.get(voter_id)
+
+    if voter is None:
+        return {"Err": {"VoterDoesNotExist": voter_id}}
+
+    for vote_id in Voter["vote_ids"]:
+        allvotes.remove(vote_id)
+
+    voters.remove(voter["voter_id"])
+
+    return {"Ok": voters}
+
+
+@update
+def create_vote(
+        f_name: str, l_name: str, voted_for: str, voter_id: Principal
+) -> CreateVoteResult:
+    voter = voters.get(voter_id)
+
+    if voter is None:
+        return {"Err": {"VoterDoesNotExist": voter_id}}
+
+    voter_id = generate_id()
+    votes: Votes = {
+        "vote_id": voter_id,
+        "f_name": f_name,
+        "l_name": l_name,
+        "voted_for": voted_for,
+        "voted_at": ic.time(),
+        "voter_id": voter_id,
+    }
+
+    votes.insert(Votes["vote_id"], Votes)
+
+    updated_voter: Voter = {
+        "voter_id": voter["voter_id"],
+        "created_at": voter["created_at"],
+        "username": voter["username"],
+        "voter_ids": [*voter["voter_ids"], votes["id"]],
+    }
+
+    voters.insert(updated_voter["id"], updated_voter)
+
+    return {"Ok": votes}
+
+
+@query
+def read_votes() -> Vec[Voter]:
+    return allvotes.values()
+
+
+@query
+def read_vote_by_id(vote_id: Principal) -> Opt[Voter]:
+    return allvotes.get(vote_id)
+
+
+@update
+def delete_votes(vote_id: Principal) -> DeleteVoterResult:
+    votes = allvotes.get(vote_id)
+
+    if votes is None:
+        return {"Err": {"VoteDoesNotExist": vote_id}}
+
+    voter = allvotes.get(votes["vote_id"])
+
+    if voter is None:
+        return {"Err": {"VoterDoesNotExist": votes["voter_id"]}}
+
+    updated_voter: Voter = {
+        "voter_id": voters["voter_id"],
+        "created_at": voters["created_at"],
+        "username": voters["username"],
+        "vote_ids": list(
+            filter(
+                lambda voter_id: voter_id.to_str() != voters["voter_id"].to_str(),
+                voters["vote_ids"],
+            )
+        ),
+    }
+
+    voters.insert(updated_voter
+                  ["voter_id"], updated_voter)
+
+    votes.remove(vote_id)
+
+    return {"Ok": votes}
+
+
+def generate_id() -> Principal:
+    random_bytes = secrets.token_bytes(29)
+
+    return Principal.from_hex(random_bytes.hex())

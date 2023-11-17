@@ -1,0 +1,30 @@
+{
+  "canisters": {
+    "votingapp_backend": {
+      "main": "src/votingapp_backend/main.py",
+      "type": "custom",
+      "build": "python -m kybra votingapp src/votingapp_backend/main.py src/votingapp_backend/main.did",
+      "post_install": ".kybra/votingapp_backend/post_install.sh",
+      "candid": "src/votingapp_backend/main.did",
+      "wasm": ".kybra/votingapp_backend/votingapp_backend.wasm",
+      "gzip": true
+    },
+
+    "votingapp_frontend": {
+      "dependencies": [
+        "votingapp_backend"
+      ],
+      "frontend": {
+        "entrypoint": "src/votingapp_frontend/src/index.html"
+      },
+      "source": [
+        "src/votingapp_frontend/assets",
+        "dist/votingapp_frontend/"
+      ],
+      "type": "assets"
+    }
+  },
+
+  "output_env_file": ".env",
+  "version": 1
+}

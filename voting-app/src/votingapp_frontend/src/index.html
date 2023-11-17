@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width"/>
+    <title>votingapp</title>
+    <base href="/"/>
+    <link rel="icon" href="favicon.ico"/>
+    <link type="text/css" rel="stylesheet" href="main.css"/>
+</head>
+<body>
+<h1>Voting System</h1>
+
+<form id="createVoterForm">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+
+    <label for="firstname">First Name:</label>
+    <input type="text" id="firstname" name="firstname" required>
+
+    <button type="submit">Create Voter</button>
+</form>
+
+<button type="button" onclick="readVoters()">Read Voters</button>
+
+<!-- Display area for results -->
+<div id="result"></div>
+
+<script src="index.js"></script>
+</body>
+</html>
